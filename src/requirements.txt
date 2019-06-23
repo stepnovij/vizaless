@@ -4,6 +4,7 @@ certifi==2019.3.9
 chardet==3.0.4
 Click==7.0
 Flask==1.0.3
+gunicorn==19.9.0
 google-api-core==1.11.1
 google-auth==1.6.3
 google-cloud-vision==0.37.0

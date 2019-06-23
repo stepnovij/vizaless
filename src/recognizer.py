@@ -8,8 +8,8 @@ def get_recognized_id(path):
     all_text = []
     parsed_response = dict()
 
-    image_paths = [path]
-    # image_paths = convert_pdf_file_from_path_to_image(path)
+    image_paths = convert_pdf_file_from_path_to_image(path)
+
     for image_path in image_paths:
         detected_text = detect_text(image_path)
         all_text.append(detected_text)
