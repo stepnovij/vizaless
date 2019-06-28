@@ -1,3 +1,4 @@
+import pycountry
 import xml.dom.minidom
 from upload_file import get_blob
 
@@ -30,5 +31,7 @@ def parse_xml_response_by_path(fp):
                     else:
                         value_year = '20' + value_year
                 value = '{}.{}.{}'.format(value_date, value_month, value_year)
+            if attr == 'Nationality':
+                value = pycountry.countries.get(alpha_3=value).name
             parsed_resp[attr] = value
     return parsed_resp

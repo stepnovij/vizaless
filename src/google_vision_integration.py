@@ -33,8 +33,7 @@
 'P<RUSMISHECHKINA<<ANNA<<<<<<<<<<<<<<<<<<<<<<', '7185597385RUS9108068F2204075<<<<<<<<<<<<<<04']
 '''
 
-
-
+import pycountry
 from google.cloud import vision
 from transliterate import translit
 from upload_file import get_blob
@@ -68,7 +67,8 @@ def parse_response(data):
             else:
                 city = ''
                 country = ' '.join(obj)
-            final_dict['PlaceOfBirthCity'] = city.strip()
+            city = city.strip().replace('ГОР.', '').strip()
+            final_dict['PlaceOfBirthCity'] = city
             final_dict['PlaceOfBirthCityTranslit'] = translit(city.strip(), 'ru', reversed=True)
             final_dict['PlaceOfBirthCountry'] = country.strip()
 
@@ -76,5 +76,11 @@ def parse_response(data):
             final_dict['IssueDate'] = data_array[idx+2]
             final_dict['IssuerOrganization'] = data_array[idx+3].replace(' ','')
             final_dict['IssuerOrganizationTranslit'] = translit(data_array[idx+3].replace(' ',''), 'ru', reversed=True)
+
+        if 'surname' in elem.lower():
+            final_dict['LastNameRus'] = ''.join([val for val in data_array[idx+1] if val.isalpha()])
+
+        if 'west' in elem.lower():
+            final_dict['FirstNameFatherNameRus'] = data_array[idx + 1].strip()
     return final_dict
 
