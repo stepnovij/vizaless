@@ -33,7 +33,7 @@
 'P<RUSMISHECHKINA<<ANNA<<<<<<<<<<<<<<<<<<<<<<', '7185597385RUS9108068F2204075<<<<<<<<<<<<<<04']
 '''
 
-import pycountry
+import logging
 from google.cloud import vision
 from transliterate import translit
 from upload_file import get_blob

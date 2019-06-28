@@ -1,3 +1,4 @@
+import time
 import logging
 import os
 from google_vision_integration import detect_text, parse_response
@@ -31,6 +32,8 @@ def get_image_paths(file_path):
 
 
 def detect_passport_image(image_paths):
+    ct = time.time()
+    logging.info('start detect_passport_image')
     all_text = []
     parsed_response = dict()
     for image_path in image_paths:
@@ -43,4 +46,6 @@ def detect_passport_image(image_paths):
             parsed_response = parse_response(text)
             passport_indx = idx
             break
+    duration = time.time() - ct
+    logging.info('finished detect_passport_image duration %s', str(round(duration, 2)))
     return parsed_response, passport_indx

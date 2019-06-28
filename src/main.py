@@ -1,4 +1,6 @@
 import os
+import logging
+import time
 from amo_crm_integration import add_contact_to_lead
 from datetime import datetime
 from recognizer import process_image
@@ -7,6 +9,25 @@ from upload_file import upload_blob
 from werkzeug.exceptions import BadRequest
 from exceptions import InvalidUsage
 from flask import jsonify
+from logging.config import dictConfig
+
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -16,6 +37,7 @@ EXTENSIONS = ('.pdf', '.jpeg', '.jpg', '.png')
 
 @app.route('/upload', methods=['POST'])
 def recognize_data():
+    ct = time.time()
     f = request.files.get('the_file')
     if not f:
         raise InvalidUsage('Please attach file and send it!', status_code=400)
@@ -23,7 +45,8 @@ def recognize_data():
     validate_image(file_path)
     upload_blob(file_path, f)
     file_dict = process_image(file_path)
-    print(file_dict)
+    duration = round(time.time() - ct, 2)
+    logging.info('Total duration time %s', duration)
     return json.dumps(file_dict)
 
 
@@ -54,6 +77,7 @@ def upload_to_crm():
 
 @app.route('/')
 def root():
+    logging.info('root handler')
     return render_template('/index.html', title="Home")
 
 

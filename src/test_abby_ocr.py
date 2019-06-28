@@ -1,8 +1,6 @@
+import logging
 from io import BytesIO
 import os
-import shutil
-
-
 import xml.dom.minidom
 import requests
 import time
@@ -138,10 +136,14 @@ def _recognize_file(file_path, result_file_path, language, output_format):
 
 
 def recognize_file(source_file):
+    ct = time.time()
+    logging.info('start recognize_file')
     file_name, ext = os.path.splitext(source_file)
     file_name += '_recognized'
     target_file = file_name + '.xml'
     language = 'English'
     output_format = 'xml'
     _recognize_file(source_file, target_file, language, output_format)
+    duration = time.time() - ct
+    logging.info('finished recognize_file %s', round(duration, 2))
     return target_file
