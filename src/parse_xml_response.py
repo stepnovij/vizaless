@@ -9,7 +9,7 @@ def parse_xml_response_by_path(fp):
         'Nationality',
         'BirthDate',
         'ExpiryDate',
-        'DocumentNumber'
+        'DocumentNumber',
     }
     fs = get_blob(fp)
     dom = xml.dom.minidom.parseString(fs)

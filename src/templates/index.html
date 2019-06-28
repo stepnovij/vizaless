@@ -52,14 +52,18 @@
             document.getElementById("progress").style.display = "block";
             _doSubmit().then(
                 function(response) {
-
+                    /*
+                    """
+{'PlaceOfBirthCity': 'ГОР. САМАРА', 'PlaceOfBirthCityTranslit': 'GOR. SAMARA', 'PlaceOfBirthCountry': 'USSR', 'LastName': 'MISHECHKINA', 'GivenName': 'ANNA', 'DocumentNumber': '718559738', 'Nationality': 'RUS', 'BirthDate': '06.08.1991', 'ExpiryDate': '07.04.2022'}
+"""
+                     */
                     let field = document.getElementById("fileUploader");
                     field.style.display = "none";
                     document.getElementById("amoCRMuploader").style.display = "block";
                     let data_from_server = JSON.parse(response);
                     document.getElementById("first_name").value = data_from_server.GivenName;
                     document.getElementById("last_name").value = data_from_server.LastName;
-                    document.getElementById("birthdate").value = data_from_server.DocumentNumber;
+                    document.getElementById("birthdate").value = data_from_server.BirthDate;
                     document.getElementById("nationality").value = data_from_server.Nationality;
                     document.getElementById("birthcity").value = data_from_server.PlaceOfBirthCityTranslit;
                     document.getElementById("birthcountry").value = data_from_server.PlaceOfBirthCountry;
