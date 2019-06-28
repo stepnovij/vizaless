@@ -122,7 +122,7 @@ def _recognize_file(file_path, result_file_path, language, output_format):
     # Wait for the task to be completed
     print("Waiting..")
     while task.is_active():
-        time.sleep(5)
+        time.sleep(0.5)
         print(".")
         task = AbbyyOnlineSdk().get_task_status(task)
 
