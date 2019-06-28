@@ -6,7 +6,7 @@ from upload_file import get_blob, upload_blob
 
 def convert_image_object_to_bytes_io(ppmimg_obj):
     bytes_io = io.BytesIO()
-    ppmimg_obj.write(bytes_io, format='jpeg')
+    ppmimg_obj.save(bytes_io, format='jpeg')
     bytes_io.seek(0)
     return bytes_io
 

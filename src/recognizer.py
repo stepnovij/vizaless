@@ -22,7 +22,7 @@ def process_image(file_path):
 def get_image_paths(file_path):
     logging.info('Start get_image_paths')
     filename, file_extension = os.path.splitext(file_path)
-    if file_extension == 'pdf':
+    if file_extension == '.pdf':
         image_paths = convert_pdf_file_from_path_to_image(file_path)
     else:
         image_paths = [file_path]

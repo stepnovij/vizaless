@@ -39,8 +39,6 @@ from transliterate import translit
 from upload_file import get_blob
 
 
-
-
 def detect_text(path):
     """Detects text in the file."""
     client = vision.ImageAnnotatorClient()
