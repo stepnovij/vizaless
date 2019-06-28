@@ -11,6 +11,10 @@
     </head>
     <script>
         function _doSubmit(){
+
+            elm = document.getElementById("error-block");
+            elm.style.display = "none";
+
             return new Promise(function(resolve, reject) {
                 let formData = new FormData();
                 let request = new XMLHttpRequest();
@@ -18,14 +22,22 @@
                 // request.setRequestHeader('content-type', 'multipart/form-data');
                 inputFile = document.getElementById('file_input_file');
                 formData.append('the_file', inputFile.files[0]);
+
                 request.onload = function () {
                     if (request.status === 200) {
                         resolve(request.response);
-                    } else {
-                        reject(Error('Image didn\'t load successfully; error code:'
-                            + request.statusText));
-                    }
 
+                    } else {
+                        if (request.status === 400) {
+                            let error = JSON.parse(request.response);
+                            elm = document.getElementById("error-block");
+                            elm.style.display = "block";
+                            msg = error.message;
+                            elm.innerHTML = msg;
+                        }
+                    }
+                    progressElm = document.getElementById("progress");
+                    progressElm.style.display = "none";
                 };
                 request.onerror = function () {
                     // Also deal with the case when the entire request fails to begin with
@@ -37,8 +49,10 @@
             });
         }
         function doSubmit() {
+            document.getElementById("progress").style.display = "block";
             _doSubmit().then(
                 function(response) {
+
                     let field = document.getElementById("fileUploader");
                     field.style.display = "none";
                     document.getElementById("amoCRMuploader").style.display = "block";
@@ -96,6 +110,8 @@
         <div class="container">
           <div class="row">
             <div class="input-field col s6">
+
+
               <form id="fileUploader">
                 <div class="file-field input-field">
                   <div class="btn">
@@ -111,6 +127,28 @@
                     <i class="material-icons right">send</i>
                 </button>
               </form>
+
+              <br>
+              <br>
+              <div class="row" id="progress" style="display: none;">
+                <div class="progress">
+                    <div class="indeterminate"></div>
+                </div>
+              </div>
+
+
+              <div class="row">
+                <div class="col s12">
+                  <div id="error-block"
+                       class="card-panel error"
+                       style="background: #ef9a9a; text-align: center; display: none">
+                  </div>
+                </div>
+              </div>
+
+
+
+
               <form class="col s12" id="amoCRMuploader">
                 <div class="input-field col s12">
                   <input id="lead_id" type="text" class="validate" required="">

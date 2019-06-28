@@ -1,21 +1,42 @@
+import os
 from amo_crm_integration import add_contact_to_lead
 from datetime import datetime
-from recognizer import get_recognized_id
-from flask import Flask, request, json, render_template, abort
+from recognizer import process_image
+from flask import Flask, request, json, render_template
 from upload_file import upload_blob
-
+from werkzeug.exceptions import BadRequest
+from exceptions import InvalidUsage
+from flask import jsonify
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
 
+EXTENSIONS = ('.pdf', '.jpeg', '.jpg', '.png')
+
+
 @app.route('/upload', methods=['POST'])
 def recognize_data():
-    f = request.files['the_file']
+    f = request.files.get('the_file')
+    if not f:
+        raise InvalidUsage('Please attach file and send it!', status_code=400)
+    file_path = get_file_path(f)
+    validate_image(file_path)
+    upload_blob(file_path, f)
+    file_dict = process_image(file_path)
+    return json.dumps(file_dict)
+
+
+def get_file_path(f):
     _file_path = '{}/'.format(datetime.now().timestamp())
     file_path = _file_path + f.filename
-    upload_blob(file_path, f)
-    file_dict = get_recognized_id(file_path)
-    return json.dumps(file_dict)
+    return file_path
+
+
+def validate_image(file_path):
+    filename, file_extension = os.path.splitext(file_path)
+    print(file_extension)
+    if file_extension not in EXTENSIONS:
+        raise InvalidUsage('Not proper file format. Please use: PDF, JPEG, JPG, PNG', status_code=400)
 
 
 @app.route('/upload_crm', methods=['POST'])
@@ -26,7 +47,7 @@ def upload_to_crm():
     request_data = json.loads(request.data)
     lead_id = request_data.get('lead_id')
     if not lead_id:
-        abort(400)
+        raise BadRequest('No lead_id is provided')
     resp = add_contact_to_lead(lead_id, request_data)
     return json.dumps({"id": resp})
 
@@ -34,3 +55,10 @@ def upload_to_crm():
 @app.route('/')
 def root():
     return render_template('/index.html', title="Home")
+
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response

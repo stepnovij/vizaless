@@ -4,9 +4,9 @@ from pdf2image import convert_from_bytes
 from upload_file import get_blob, upload_blob
 
 
-def convert_image_object_to_bytes_io(bytes_seq):
+def convert_image_object_to_bytes_io(ppmimg_obj):
     bytes_io = io.BytesIO()
-    bytes_io.write(bytes_seq)
+    ppmimg_obj.write(bytes_io, format='jpeg')
     bytes_io.seek(0)
     return bytes_io
 
