@@ -1,4 +1,5 @@
-import io
+import asyncio
+from upload_file import upload_blob
 import time
 import logging
 import os
@@ -10,17 +11,16 @@ from parse_xml_response import parse_xml_response_by_path
 
 def process_image(_file, file_path):
     logging.info('Start process_image')
-    # bytes_io = io.StringIO()
-    # _file.save(bytes_io)
-    # bytes_io.seek(0)
+
+    upload_blob(file_path, _file)
 
     file_objs, image_paths = get_images(_file, file_path)
 
     # TODO: make here real detect algorithm of the passport:
     parsed_response, passport_indx = detect_passport_image(file_objs, image_paths)
-    target_file = recognize_file(file_objs[passport_indx], image_paths[passport_indx])
+    file_obj = recognize_file(file_objs[passport_indx], image_paths[passport_indx])
 
-    parsed_response.update(parse_xml_response_by_path(target_file))
+    parsed_response.update(parse_xml_response_by_path(file_obj))
     logging.info('Finish process_image')
     return parsed_response
 

@@ -5,7 +5,6 @@ from amo_crm_integration import add_contact_to_lead
 from datetime import datetime
 from recognizer import process_image
 from flask import Flask, request, json, render_template
-from upload_file import upload_blob
 from werkzeug.exceptions import BadRequest
 from exceptions import InvalidUsage
 from flask import jsonify
@@ -43,8 +42,6 @@ def recognize_data():
         raise InvalidUsage('Please attach file and send it!', status_code=400)
     file_path = get_file_path(f)
     validate_image(file_path)
-    upload_blob(file_path, f)
-
     file_dict = process_image(f, file_path)
     duration = round(time.time() - ct, 2)
     logging.info('Total duration time %s', duration)

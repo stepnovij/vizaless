@@ -6,7 +6,7 @@ import requests
 import time
 
 from settings import APPLICATION_ID, APPLICATION_PASSWORD
-from upload_file import get_blob, upload_blob
+from upload_file import upload_blob
 
 
 class ProcessingSettings:
@@ -82,7 +82,7 @@ class AbbyyOnlineSdk:
       string_obj = BytesIO()
       string_obj.write(file_response.content)
       string_obj.seek(0)
-      upload_blob(output_path, string_obj)
+      # upload_blob(output_path, string_obj)
       return file_response.content
 
    def decode_response(self, xml_response):
@@ -129,10 +129,12 @@ def _recognize_file(image_data, result_file_path, language, output_format):
     print("Status = {}".format(task.Status))
     if task.Status == "Completed":
         if task.DownloadUrl is not None:
-            AbbyyOnlineSdk().download_result(task, result_file_path)
+            _file_obj = AbbyyOnlineSdk().download_result(task, result_file_path)
             print("Result was written to {}".format(result_file_path))
         else:
+            _file_obj = None
             print("Error processing task")
+    return _file_obj
 
 
 def recognize_file(image_data, image_path):
@@ -143,7 +145,7 @@ def recognize_file(image_data, image_path):
     target_file = file_name + '.xml'
     language = 'English'
     output_format = 'xml'
-    _recognize_file(image_data, target_file, language, output_format)
+    file_obj = _recognize_file(image_data, target_file, language, output_format)
     duration = time.time() - ct
     logging.info('finished recognize_file %s', round(duration, 2))
-    return target_file
+    return file_obj

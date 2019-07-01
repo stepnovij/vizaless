@@ -3,10 +3,12 @@ import logging
 import time
 from google.cloud import storage
 from google.cloud.storage import Blob
+from utils import force_async
 
 from settings import UPLOAD_GOOGLE_PROJECT, UPLOAD_GOOGLE_BUCKET_NAME, UPLOAD_TEST_PATH, is_dev_env
 
 
+# @force_async
 def upload_blob(file_path, input_file):
     ct = time.time()
     logging.info('Start uploading file')

@@ -3,7 +3,7 @@ import xml.dom.minidom
 from upload_file import get_blob
 
 
-def parse_xml_response_by_path(fp):
+def parse_xml_response_by_path(fs):
     needed_keys = {
         'LastName',
         'GivenName',
@@ -12,7 +12,6 @@ def parse_xml_response_by_path(fp):
         'ExpiryDate',
         'DocumentNumber',
     }
-    fs = get_blob(fp)
     dom = xml.dom.minidom.parseString(fs)
     parsed_resp = dict()
     for elem in dom.firstChild.getElementsByTagName('field'):
