@@ -1,4 +1,5 @@
 import functools
+from datetime import datetime
 
 
 def force_async(fn):
@@ -32,3 +33,10 @@ def force_sync(fn):
 
     return wrapper
 
+
+def is_date_valid(date_text):
+    try:
+        datetime.strptime(date_text, '%d.%m.%Y')
+    except ValueError:
+        return False
+    return True

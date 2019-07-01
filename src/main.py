@@ -56,7 +56,7 @@ def get_file_path(f):
 
 def validate_image(file_path):
     filename, file_extension = os.path.splitext(file_path)
-    if file_extension not in EXTENSIONS:
+    if file_extension.lower() not in EXTENSIONS:
         raise InvalidUsage('Not proper file format. Please use: PDF, JPEG, JPG, PNG', status_code=400)
 
 

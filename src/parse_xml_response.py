@@ -12,6 +12,7 @@ def parse_xml_response_by_path(fs):
         'ExpiryDate',
         'DocumentNumber',
     }
+    print(fs)
     dom = xml.dom.minidom.parseString(fs)
     parsed_resp = dict()
     for elem in dom.firstChild.getElementsByTagName('field'):

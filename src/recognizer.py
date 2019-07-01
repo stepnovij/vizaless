@@ -1,3 +1,4 @@
+import re
 import asyncio
 from upload_file import upload_blob
 import time
@@ -7,7 +8,7 @@ from google_vision_integration import detect_text, parse_response
 from convert_to_image import convert_pdf_file_from_path_to_image
 from test_abby_ocr import recognize_file
 from parse_xml_response import parse_xml_response_by_path
-from utils import force_async, force_sync
+from utils import force_async
 
 
 def process_image(_file, file_path):
@@ -17,7 +18,9 @@ def process_image(_file, file_path):
     tasks.append(_process_image(_file, file_path))
     responses = loop.run_until_complete(asyncio.gather(*tasks))
     loop.close()
-    return responses[0]
+    parsed_response, source = responses[0]
+    parsed_response.update(final_checks(parsed_response, source))
+    return parsed_response
 
 
 async def _process_image(_file, file_path):
@@ -35,12 +38,22 @@ async def _process_image(_file, file_path):
 
     responses = await asyncio.gather(*futures)
 
-    parsed_response = responses[1]
+    parsed_response, source = responses[1]
     file_obj = responses[2]
-
     parsed_response.update(parse_xml_response_by_path(file_obj))
     logging.info('Finish process_image')
-    return parsed_response
+    return parsed_response, source
+
+
+def final_checks(parsed_response, source):
+    if not parsed_response.get('IssueDate'):
+        if parsed_response.get('ExpiryDate'):
+            pattern = parsed_response['ExpiryDate'][:6] + '\d{4}'
+            for elem in source:
+                m = re.search(pattern, elem)
+                if m and m.group():
+                    return {'IssueDate': m.group()}
+    return {}
 
 
 def get_images(_file, file_path):
@@ -58,6 +71,7 @@ def get_images(_file, file_path):
 @force_async
 def detect_passport_image(file_objs, image_paths):
     ct = time.time()
+    source = []
     logging.info('start detect_passport_image')
     all_text = []
     parsed_response = dict()
@@ -67,10 +81,12 @@ def detect_passport_image(file_objs, image_paths):
 
     passport_indx = 0
     for idx, text in enumerate(all_text):
-        if 'passport' in text.lower() and 'name' in text.lower() and '<<<<' in text:
-            parsed_response = parse_response(text)
-            passport_indx = idx
-            break
+        parsed_response, source = parse_response(text)
+        # if 'passport' in text.lower() and 'name' in text.lower() and '<<<<' in text:
+            # parsed_response = parse_response(text)
+            # passport_indx = idx
+            # break
+
     duration = time.time() - ct
     logging.info('finished detect_passport_image duration %s', str(round(duration, 2)))
-    return parsed_response #, passport_indx
+    return parsed_response, source#, passport_indx
