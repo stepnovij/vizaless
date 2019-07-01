@@ -103,7 +103,7 @@ def get_place_of_birth(elem, data_array, idx):
 
     # Logic1
     if 'RUSSIA' in elem and 'RUSSIAN' not in elem:
-        possible_city, _ = elem.split('/')[:1]
+        possible_city = elem.split('/')[1]
         if 'Г.' in possible_city:
             city = elem.split('Г.')[-1].strip().replace('Г.')
             birth_dict['PlaceOfBirthCity'] = city.strip()
@@ -140,7 +140,7 @@ def parse_response(data):
         if 'SURNAME' in elem:
             final_dict['LastNameRus'] = ''.join([val for val in data_array[idx+1] if val.isalpha()])
 
-        if 'GIVEN' in elem:
+        if 'GIVEN' in elem or 'NAMES' in elem:
             final_dict['FirstNameFatherNameRus'] = data_array[idx + 1].replace('/', '').strip()
 
         #awesome logic with multiple rewritings
