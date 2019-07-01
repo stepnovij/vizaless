@@ -7,18 +7,36 @@ from google_vision_integration import detect_text, parse_response
 from convert_to_image import convert_pdf_file_from_path_to_image
 from test_abby_ocr import recognize_file
 from parse_xml_response import parse_xml_response_by_path
+from utils import force_async, force_sync
 
 
 def process_image(_file, file_path):
+    tasks = []
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    tasks.append(_process_image(_file, file_path))
+    responses = loop.run_until_complete(asyncio.gather(*tasks))
+    loop.close()
+    return responses[0]
+
+
+async def _process_image(_file, file_path):
     logging.info('Start process_image')
 
-    upload_blob(file_path, _file)
+    futures = list()
+    futures.append(upload_blob(file_path, _file))
 
     file_objs, image_paths = get_images(_file, file_path)
 
-    # TODO: make here real detect algorithm of the passport:
-    parsed_response, passport_indx = detect_passport_image(file_objs, image_paths)
-    file_obj = recognize_file(file_objs[passport_indx], image_paths[passport_indx])
+    passport_indx = 0
+
+    futures.append(detect_passport_image(file_objs, image_paths))
+    futures.append(recognize_file(file_objs[passport_indx], image_paths[passport_indx]))
+
+    responses = await asyncio.gather(*futures)
+
+    parsed_response = responses[1]
+    file_obj = responses[2]
 
     parsed_response.update(parse_xml_response_by_path(file_obj))
     logging.info('Finish process_image')
@@ -26,17 +44,18 @@ def process_image(_file, file_path):
 
 
 def get_images(_file, file_path):
-    logging.info('Start get_image_paths')
+    logging.info('Start get_images')
     filename, file_extension = os.path.splitext(file_path)
     if file_extension == '.pdf':
         file_objs, image_paths = convert_pdf_file_from_path_to_image(_file, file_path)
     else:
         _file.seek(0)
         file_objs, image_paths = [_file], [file_path]
-    logging.info('Finish get_image_paths')
+    logging.info('Finish get_images')
     return file_objs, image_paths
 
 
+@force_async
 def detect_passport_image(file_objs, image_paths):
     ct = time.time()
     logging.info('start detect_passport_image')
@@ -54,4 +73,4 @@ def detect_passport_image(file_objs, image_paths):
             break
     duration = time.time() - ct
     logging.info('finished detect_passport_image duration %s', str(round(duration, 2)))
-    return parsed_response, passport_indx
+    return parsed_response #, passport_indx

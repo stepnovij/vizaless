@@ -8,7 +8,7 @@ from utils import force_async
 from settings import UPLOAD_GOOGLE_PROJECT, UPLOAD_GOOGLE_BUCKET_NAME, UPLOAD_TEST_PATH, is_dev_env
 
 
-# @force_async
+@force_async
 def upload_blob(file_path, input_file):
     ct = time.time()
     logging.info('Start uploading file')
@@ -18,6 +18,7 @@ def upload_blob(file_path, input_file):
     if is_dev_env:
         file_path = os.path.join(UPLOAD_TEST_PATH, file_path)
     blob = Blob(file_path, bucket)
+    input_file.seek(0)
     blob.upload_from_file(input_file)
     duration = time.time() - ct
     logging.info('Finished uploading file %s', duration)

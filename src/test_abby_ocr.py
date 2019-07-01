@@ -7,7 +7,7 @@ import time
 
 from settings import APPLICATION_ID, APPLICATION_PASSWORD
 from upload_file import upload_blob
-
+from utils import force_async
 
 class ProcessingSettings:
     Language = "English"
@@ -122,21 +122,22 @@ def _recognize_file(image_data, result_file_path, language, output_format):
     # Wait for the task to be completed
     print("Waiting..")
     while task.is_active():
-        time.sleep(0.5)
+        time.sleep(0.3)
         print(".")
         task = AbbyyOnlineSdk().get_task_status(task)
 
     print("Status = {}".format(task.Status))
+    _file_obj = None
     if task.Status == "Completed":
         if task.DownloadUrl is not None:
             _file_obj = AbbyyOnlineSdk().download_result(task, result_file_path)
             print("Result was written to {}".format(result_file_path))
         else:
-            _file_obj = None
             print("Error processing task")
     return _file_obj
 
 
+@force_async
 def recognize_file(image_data, image_path):
     ct = time.time()
     logging.info('start recognize_file')
