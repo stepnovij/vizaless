@@ -1,15 +1,20 @@
+import os
 import logging
 import time
 from google.cloud import storage
 from google.cloud.storage import Blob
+
+from settings import UPLOAD_GOOGLE_PROJECT, UPLOAD_GOOGLE_BUCKET_NAME, UPLOAD_TEST_PATH, is_dev_env
 
 
 def upload_blob(file_path, input_file):
     ct = time.time()
     logging.info('Start uploading file')
     """Uploads a file to the bucket."""
-    client = storage.Client(project="objects-recogntion")
-    bucket = client.get_bucket("recognition_documents")
+    client = storage.Client(project=UPLOAD_GOOGLE_PROJECT)
+    bucket = client.get_bucket(UPLOAD_GOOGLE_BUCKET_NAME)
+    if is_dev_env:
+        file_path = os.path.join(UPLOAD_TEST_PATH, file_path)
     blob = Blob(file_path, bucket)
     blob.upload_from_file(input_file)
     duration = time.time() - ct
@@ -22,9 +27,11 @@ def get_blob(file_path):
     ct = time.time()
     logging.info('Start downloading file')
 
-    client = storage.Client(project="objects-recogntion")
-    bucket = client.get_bucket("recognition_documents")
+    client = storage.Client(project=UPLOAD_GOOGLE_PROJECT)
+    bucket = client.get_bucket(UPLOAD_GOOGLE_BUCKET_NAME)
     # Then do other things...
+    if is_dev_env:
+        file_path = os.path.join(UPLOAD_TEST_PATH, file_path)
     blob = bucket.get_blob(file_path)
 
     duration = time.time() - ct

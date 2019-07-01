@@ -39,12 +39,11 @@ from transliterate import translit
 from upload_file import get_blob
 
 
-def detect_text(path):
+def detect_text(file_obj):
     """Detects text in the file."""
     client = vision.ImageAnnotatorClient()
-
-    content = get_blob(path)
-
+    file_obj.seek(0)
+    content = file_obj.read()
     image = vision.types.Image(content=content)
 
     response = client.document_text_detection(image=image)

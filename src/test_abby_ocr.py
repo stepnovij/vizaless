@@ -33,10 +33,8 @@ class AbbyyOnlineSdk:
    Password = APPLICATION_PASSWORD
    Proxies = {}
 
-   def process_image(self, file_path, settings):
+   def process_image(self, image_data, settings):
       request_url = self.get_request_url("processMRZ")
-
-      image_data = get_blob(file_path)
 
       url_params = {
           "language": settings.Language,
@@ -45,9 +43,11 @@ class AbbyyOnlineSdk:
           "imageSource": "scanner"
       }
 
+      image_data.seek(0)
+      content = image_data.read()
       response = requests.post(
           request_url,
-          data=image_data, #params=url_params,
+          data=content, #params=url_params,
           auth=(self.ApplicationId, self.Password),
           proxies=self.Proxies)
 
@@ -101,12 +101,12 @@ class AbbyyOnlineSdk:
    
 
 # Recognize a file at filePath and save result to resultFilePath
-def _recognize_file(file_path, result_file_path, language, output_format):
+def _recognize_file(image_data, result_file_path, language, output_format):
     print("Uploading..")
     settings = ProcessingSettings()
     settings.Language = language
     settings.OutputFormat = output_format
-    task = AbbyyOnlineSdk().process_image(file_path, settings)
+    task = AbbyyOnlineSdk().process_image(image_data, settings)
 
     if task is None:
         print("Error")
@@ -135,15 +135,15 @@ def _recognize_file(file_path, result_file_path, language, output_format):
             print("Error processing task")
 
 
-def recognize_file(source_file):
+def recognize_file(image_data, image_path):
     ct = time.time()
     logging.info('start recognize_file')
-    file_name, ext = os.path.splitext(source_file)
+    file_name, ext = os.path.splitext(image_path)
     file_name += '_recognized'
     target_file = file_name + '.xml'
     language = 'English'
     output_format = 'xml'
-    _recognize_file(source_file, target_file, language, output_format)
+    _recognize_file(image_data, target_file, language, output_format)
     duration = time.time() - ct
     logging.info('finished recognize_file %s', round(duration, 2))
     return target_file

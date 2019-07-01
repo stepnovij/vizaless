@@ -50,6 +50,7 @@
         }
         function doSubmit() {
             document.getElementById("progress").style.display = "block";
+            document.getElementById("fileSender").style.display = "none";
             _doSubmit().then(
                 function(response) {
                     /*
@@ -116,7 +117,7 @@
                     <input id="file_input_file" type="file"/>
                   </div>
                 </div>
-                <button class="btn waves-effect waves-light" onclick="doSubmit();">Отправить на распознование
+                <button class="btn waves-effect waves-light" id="fileSender" onclick="doSubmit();">Отправить на распознование
                     <i class="material-icons right">send</i>
                 </button>
               </form>

@@ -44,7 +44,8 @@ def recognize_data():
     file_path = get_file_path(f)
     validate_image(file_path)
     upload_blob(file_path, f)
-    file_dict = process_image(file_path)
+
+    file_dict = process_image(f, file_path)
     duration = round(time.time() - ct, 2)
     logging.info('Total duration time %s', duration)
     return json.dumps(file_dict)
