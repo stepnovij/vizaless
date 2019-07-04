@@ -1,8 +1,13 @@
 import os
 
-amo_apikey = 'c89f969da9eb1c2db634d8f1a28cde2ef431afba'
-amo_user = 'stepnovij'
-amo_email = 'stepnovij@gmail.com'
+amo_apikey = 'b2507319599db3130bd5512c3d749ad8f87c2663'
+amo_user = 'stanrubovskiy'
+amo_email = 'stan.rubovskiy@gmail.com'
+
+
+VERSION = 'moscow-viza'
+# VERSION = 'emails'
+
 APPLICATION_ID = 'stepnovij_recognition_test'
 APPLICATION_PASSWORD = 'GUEwDXhpgz3COGUrFbMyRHTc'
 

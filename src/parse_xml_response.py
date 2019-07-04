@@ -12,7 +12,6 @@ def parse_xml_response_by_path(fs):
         'ExpiryDate',
         'DocumentNumber',
     }
-    print(fs)
     dom = xml.dom.minidom.parseString(fs)
     parsed_resp = dict()
     for elem in dom.firstChild.getElementsByTagName('field'):
@@ -32,6 +31,7 @@ def parse_xml_response_by_path(fs):
                         value_year = '20' + value_year
                 value = '{}.{}.{}'.format(value_date, value_month, value_year)
             if attr == 'Nationality':
-                value = pycountry.countries.get(alpha_3=value).name
+                value = "{} / {}".format(pycountry.countries.get(alpha_3=value).alpha_2,
+                                         pycountry.countries.get(alpha_3=value).name)
             parsed_resp[attr] = value
     return parsed_resp

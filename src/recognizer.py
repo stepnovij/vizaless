@@ -20,6 +20,8 @@ def process_image(_file, file_path):
     loop.close()
     parsed_response, source = responses[0]
     parsed_response.update(final_checks(parsed_response, source))
+
+    parsed_response['path'] = os.path.split(file_path)[0]
     return parsed_response
 
 

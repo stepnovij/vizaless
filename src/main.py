@@ -1,3 +1,5 @@
+from raven.contrib.flask import Sentry
+import asyncio
 import os
 import logging
 import time
@@ -9,6 +11,8 @@ from werkzeug.exceptions import BadRequest
 from exceptions import InvalidUsage
 from flask import jsonify
 from logging.config import dictConfig
+from upload_file import upload_blob
+from utils import create_file_like_object
 
 
 dictConfig({
@@ -27,8 +31,11 @@ dictConfig({
     }
 })
 
-
 app = Flask(__name__, static_folder="static", template_folder="templates")
+
+if os.getenv('FLASK_ENV', 'prod') != 'development':
+    sentry = Sentry()
+    sentry.init_app(app, dsn='https://3d5c53d407f44b859a7cfdf951866cac@sentry.io/128171')
 
 
 EXTENSIONS = ('.pdf', '.jpeg', '.jpg', '.png')
@@ -66,11 +73,19 @@ def upload_to_crm():
     curl -H "Content-Type: application/json"  -X POST 'http://127.0.0.1:5000/upload_crm' -d '{"BirthDate": "06.08.1991", "ExpiryDate": "07.04.2022", "GivenName": "ANNA", "IssueDate": "07.04.2012", "IssuerOrganization": "\\u0424\\u041c\\u042163007", "IssuerOrganizationTranslit": "FMS63007", "LastName": "MISHECHKINA", "Nationality": "RUS", "PlaceOfBirthCity": "\\u0413\\u041e\\u0420. \\u0421\\u0410\\u041c\\u0410\\u0420\\u0410", "PlaceOfBirthCityTranslit": "GOR. SAMARA", "PlaceOfBirthCountry": "USSR", "lead_id": "3787601", "DocumentNumber": "718559738"}'
     """
     request_data = json.loads(request.data)
+    json_file = create_file_like_object(request.data)
+    file_path = os.path.join(request_data['path'], 'results.json')
+
+    loop = asyncio.new_event_loop()
+    loop.run_in_executor(None, upload_blob, file_path, json_file)
     lead_id = request_data.get('lead_id')
     if not lead_id:
         raise BadRequest('No lead_id is provided')
+    print(request_data)
+    loop.close()
     resp = add_contact_to_lead(lead_id, request_data)
     return json.dumps({"id": resp})
+
 
 
 @app.route('/')

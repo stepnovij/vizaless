@@ -53,25 +53,30 @@
             document.getElementById("fileSender").style.display = "none";
             _doSubmit().then(
                 function(response) {
-                    /*
-                    """
-{'PlaceOfBirthCity': 'ГОР. САМАРА', 'PlaceOfBirthCityTranslit': 'GOR. SAMARA', 'PlaceOfBirthCountry': 'USSR', 'LastName': 'MISHECHKINA', 'GivenName': 'ANNA', 'DocumentNumber': '718559738', 'Nationality': 'RUS', 'BirthDate': '06.08.1991', 'ExpiryDate': '07.04.2022'}
-"""
-                     */
                     let field = document.getElementById("fileUploader");
                     field.style.display = "none";
                     document.getElementById("amoCRMuploader").style.display = "block";
                     let data_from_server = JSON.parse(response);
+
+                    let name = "";
+                    if (data_from_server.FirstNameFatherNameRus){
+                      let res = data_from_server.FirstNameFatherNameRus.split(' ');
+                      name = data_from_server.LastNameRus + ' ' + res[0].slice(0, 1) + '.' + res[0].slice(0, 1)+ '.';
+                    }
+
+                    document.getElementById("path").value = data_from_server.path;
                     document.getElementById("FIO").value = data_from_server.LastNameRus + ' ' + data_from_server.FirstNameFatherNameRus;
+                    document.getElementById("FIO_2").value = name;
                     document.getElementById("first_name").value = data_from_server.GivenName;
                     document.getElementById("last_name").value = data_from_server.LastName;
                     document.getElementById("birthdate").value = data_from_server.BirthDate;
                     document.getElementById("nationality").value = data_from_server.Nationality;
-                    document.getElementById("birthcity").value = data_from_server.PlaceOfBirthCityTranslit + ' ' + data_from_server.PlaceOfBirthCountry;
+                    document.getElementById("birthcity").value = data_from_server.PlaceOfBirthCityTranslit + '/' + data_from_server.PlaceOfBirthCountry;
                     document.getElementById("document_number").value = data_from_server.DocumentNumber;
                     document.getElementById("issuedate").value = data_from_server.IssueDate;
                     document.getElementById("expirydate").value = data_from_server.ExpiryDate;
                     document.getElementById("issueorganization").value = data_from_server.IssuerOrganizationTranslit;
+                    document.getElementById("fileUploader").reset();
                 }, function(Error) {
                     console.log(Error);
             });
@@ -80,22 +85,44 @@
         function doSubmitAmoCRM(){
             let formData = new FormData();
             let request = new XMLHttpRequest();
+            let ele = document.getElementsByName('group1');
+            let is_recognized;
+            for(i = 0; i < ele.length; i++) {
+                if(ele[i].checked) is_recognized = ele[i].value;
+            }
+
+          let leadId = document.getElementById("lead_id").value;
+          if (leadId == '') {
+            alert("Номер сделки должен быть заполнен");
+            return false;
+          }
+
             let data = JSON.stringify({
+                "path": document.getElementById("path").value,
                 "lead_id": document.getElementById("lead_id").value,
                 "FIO": document.getElementById("FIO").value,
+                "FIO_2": document.getElementById("FIO_2").value,
                 "GivenName": document.getElementById("first_name").value,
                 "LastName": document.getElementById("last_name").value,
                 "BirthDate": document.getElementById("birthdate").value,
                 "DocumentNumber": document.getElementById("document_number").value,
                 "Nationality": document.getElementById("nationality").value,
-                "PlaceOfBirthCityTranslit": document.getElementById("birthcity").value,
+                "PlaceOfBirthTranslit": document.getElementById("birthcity").value,
                 "IssueDate": document.getElementById("issuedate").value,
                 "ExpiryDate": document.getElementById("expirydate").value,
                 "IssuerOrganizationTranslit": document.getElementById("issueorganization").value,
+                "IsRecognized": is_recognized,
             });
             request.open('POST', "/upload_crm");
             request.setRequestHeader('content-type', 'Content-Type: application/json');
             request.send(data);
+
+            document.getElementById("amoCRMuploader").reset();
+            document.getElementById("amoCRMuploader").style.display = "none";
+
+            document.getElementById("fileUploader").style.display = "block";
+            document.getElementById("fileSender").style.display = "block";
+
         }
     </script>
     <body>
@@ -142,9 +169,11 @@
             </div>
 
 
+            <form class="col s12" id="amoCRMuploader" style="display: none;">
+              <div class="input-field col s12" style="display: none;">
+                <input id="path" type="text">
+              </div>
 
-
-            <form class="col s12" id="amoCRMuploader">
               <div class="input-field col s12">
                 <input id="lead_id" type="text" class="validate" required="">
                 <span class="helper-text" data-error="wrong" data-success="right">Контракт номер</span>
@@ -154,6 +183,12 @@
               <div class="input-field col s12">
                 <input id="FIO" type="text" class="validate">
                 <span class="helper-text" data-error="wrong" data-success="right">ФИО</span>
+                <!--<label class="active" for="first_name">Имя</label>-->
+              </div>
+
+              <div class="input-field col s12">
+                <input id="FIO_2" type="text" class="validate">
+                <span class="helper-text" data-error="wrong" data-success="right">Фамилия И.О</span>
                 <!--<label class="active" for="first_name">Имя</label>-->
               </div>
 
@@ -168,12 +203,12 @@
               </div>
               <div class="input-field col s12">
                 <input id="birthdate" type="text" class="validate">
-                <span class="helper-text" data-error="wrong" data-success="right">Дата рождения</span>
+                <span class="helper-text" data-error="wrong" data-success="right">День Рождения</span>
               </div>
 
               <div class="input-field col s12">
                 <input id="nationality" type="text" class="validate">
-                <span class="helper-text" data-error="wrong" data-success="right">Национальность</span>
+                <span class="helper-text" data-error="wrong" data-success="right">Гражданство</span>
               </div>
 
               <div class="input-field col s12">
@@ -199,7 +234,20 @@
                 <input id="issueorganization" type="text" class="validate">
                 <span class="helper-text" data-error="wrong" data-success="right">Орган выдавший документ</span>
               </div>
-
+              <div id="is_recognized" class="input-field col s12">
+                <p>
+                  <label>
+                    <input name="group1" type="radio" value="recognized" checked />
+                    <span>Документ распознался</span>
+                  </label>
+                </p>
+                <p>
+                  <label>
+                    <input name="group1" type="radio" value="not_recognized" />
+                    <span>Документ не распознался</span>
+                  </label>
+                </p>
+              </div>
               <button class="btn waves-effect waves-light" onclick="doSubmitAmoCRM();">Отправить в AMOcrm
                   <i class="material-icons right">send</i>
               </button>
@@ -212,7 +260,11 @@
           document.getElementById("fileUploader").addEventListener("submit", function (event) {
               event.preventDefault();
           });
-          document.getElementById("amoCRMuploader").style.display = "none";
+
+          document.getElementById("amoCRMuploader").addEventListener("submit", function (event) {
+              event.preventDefault();
+          });
+
       </script>
     </body>
   </html>

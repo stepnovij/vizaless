@@ -1,3 +1,4 @@
+import io
 import functools
 from datetime import datetime
 
@@ -40,3 +41,10 @@ def is_date_valid(date_text):
     except ValueError:
         return False
     return True
+
+
+def create_file_like_object(data):
+    _file = io.BytesIO()
+    _file.write(data)
+    _file.seek(0)
+    return _file
