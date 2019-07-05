@@ -1,3 +1,4 @@
+import re
 from google.cloud import vision
 from transliterate import translit
 
@@ -41,6 +42,19 @@ def _preprocess_data(data):
     data = data.replace('X /F', '')
     data = data.replace('X/F', '')
     data = data.replace('X/ F', '')
+
+    data = re.sub(r'\s\w{1}/\w{1}\s', '\n', data, flags=re.DOTALL)
+
+    data = re.sub(r'\sF\s', '\s', data, flags=re.DOTALL)
+    data = re.sub(r'\sЖ\s', '\s', data, flags=re.DOTALL)
+    data = re.sub(r'\sМ\s', '\s', data, flags=re.DOTALL)
+    data = re.sub(r'\sM\s', '\s', data, flags=re.DOTALL)
+
+    data = data.replace('!', '')
+    data = data.replace('?', '')
+
+    data = data.replace('Г.', '')
+    data = data.replace('ГОР.', '')
     return data
 
 
@@ -85,12 +99,11 @@ def get_place_of_birth(elem, data_array, idx):
 
     if 'МОСКВА' in elem:
         birth_dict['PlaceOfBirthCity'] = 'МОСКВА'
-        birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True)
 
     # Logic1
     if 'USSR' in elem:
         birth_dict['PlaceOfBirthCountry'] = 'USSR'
-        possible_city = elem.split('/')[:1]
+        birth_dict['PlaceOfBirthCity'] = elem.split('/', maxsplit=1)[0].strip()
 
     if 'RUSSIA' in elem and 'RUSSIAN' not in elem:
         birth_dict['PlaceOfBirthCountry'] = 'RUSSIA'
@@ -99,17 +112,16 @@ def get_place_of_birth(elem, data_array, idx):
         birth_dict['PlaceOfBirthCountry'] = 'GEORGIA'
 
     if has_all_birth_keys(birth_dict):
+        birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True).strip().upper()
         return birth_dict
 
     # Logic1
-    if 'RUSSIA' in elem and 'RUSSIAN' not in elem:
-        possible_city = elem.split('/')[1]
-        if 'Г.' in possible_city:
-            city = elem.split('Г.')[-1].strip().replace('Г.')
-            birth_dict['PlaceOfBirthCity'] = city.strip()
-            birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True).upper()
+    if ('RUSSIA' in elem and 'RUSSIAN' not in elem) or 'USSR' in elem:
+        possible_city = elem.split('/')[0]
+        birth_dict['PlaceOfBirthCity'] = possible_city.strip()
 
     if has_all_birth_keys(birth_dict):
+        birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True).strip().upper()
         return birth_dict
 
     # Logic3
@@ -122,9 +134,24 @@ def get_place_of_birth(elem, data_array, idx):
             city = ''
             country = ' '.join(obj)
         birth_dict['PlaceOfBirthCity'] = city.strip().replace('Г.', '')
-        birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True).upper()
         birth_dict['PlaceOfBirthCountry'] = country.strip()
+
+    if 'PlaceOfBirthCity' in birth_dict:
+        birth_dict['PlaceOfBirthCityTranslit'] = translit(birth_dict['PlaceOfBirthCity'], 'ru', reversed=True).strip().upper()
+        birth_dict['PlaceOfBirthCity'] = birth_dict['PlaceOfBirthCity'].strip()
     return birth_dict
+
+
+def remove_non_cyrillic(text):
+    return ''.join([l.group() for l in [re.search('[а-яА-Я\s]', x) for x in text] if l]).strip()
+
+
+def remove_all_non_cyrillic_symb(final_dict):
+    if 'LastNameRus' in final_dict:
+        final_dict['LastNameRus'] = remove_non_cyrillic(final_dict['LastNameRus'])
+    if 'FirstNameFatherNameRus' in final_dict:
+        final_dict['FirstNameFatherNameRus'] = remove_non_cyrillic(final_dict['FirstNameFatherNameRus'])
+    return final_dict
 
 
 def parse_response(data):
@@ -132,13 +159,11 @@ def parse_response(data):
 
     data = _preprocess_data(data)
     data_array = data.strip().split('\n')
-
-    print('HERE:')
-    print(data_array)
     for idx, elem in enumerate(data_array):
 
-        if 'SURNAME' in elem:
-            final_dict['LastNameRus'] = ''.join([val for val in data_array[idx+1] if val.isalpha()])
+        if ('SURNAME' in elem or 'ФАМИЛИЯ' in elem):
+            family_name = data_array[idx + 1].split(' ')[0]
+            final_dict['LastNameRus'] = ''.join([val for val in family_name if val.isalpha()])
 
         if 'GIVEN' in elem or 'NAMES' in elem:
             final_dict['FirstNameFatherNameRus'] = data_array[idx + 1].replace('/', '').strip()
@@ -153,5 +178,6 @@ def parse_response(data):
 
     if not final_dict.get('PlaceOfBirthCityTranslit'):
         final_dict['PlaceOfBirthCityTranslit'] = ''
+    final_dict = remove_all_non_cyrillic_symb(final_dict)
     return final_dict, data_array
 
