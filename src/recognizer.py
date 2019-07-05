@@ -4,7 +4,7 @@ from upload_file import upload_blob
 import time
 import logging
 import os
-from google_vision_integration import detect_text, parse_response
+from google_vision_integration import detect_text, parse_response, remove_non_cyrillic
 from convert_to_image import convert_pdf_file_from_path_to_image
 from test_abby_ocr import recognize_file
 from parse_xml_response import parse_xml_response_by_path
@@ -19,6 +19,7 @@ def process_image(_file, file_path):
     responses = loop.run_until_complete(asyncio.gather(*tasks))
     loop.close()
     parsed_response, source = responses[0]
+
     parsed_response.update(final_checks(parsed_response, source))
 
     parsed_response['path'] = os.path.split(file_path)[0]
@@ -49,14 +50,21 @@ async def _process_image(_file, file_path):
 
 
 def final_checks(parsed_response, source):
+    final_dict = {}
     if not parsed_response.get('IssueDate'):
         if parsed_response.get('ExpiryDate'):
             pattern = parsed_response['ExpiryDate'][:6] + '\d{4}'
             for elem in source:
                 m = re.search(pattern, elem)
                 if m and m.group():
-                    return {'IssueDate': m.group()}
-    return {}
+                    final_dict.update({'IssueDate': m.group()})
+
+    if not parsed_response.get('FirstNameFatherNameRus') and 'GivenName' in parsed_response:
+        for idx, elem in enumerate(source):
+            if parsed_response['GivenName'] in elem:
+                final_dict['FirstNameFatherNameRus'] = remove_non_cyrillic(source[idx-1])
+                break
+    return final_dict
 
 
 def get_images(_file, file_path):

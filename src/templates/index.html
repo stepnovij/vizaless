@@ -61,7 +61,7 @@
                     let name = "";
                     if (data_from_server.FirstNameFatherNameRus){
                       let res = data_from_server.FirstNameFatherNameRus.split(' ');
-                      name = data_from_server.LastNameRus + ' ' + res[0].slice(0, 1) + '.' + res[0].slice(0, 1)+ '.';
+                      name = data_from_server.LastNameRus + ' ' + res[0].slice(0, 1) + '.' + res[1].slice(0, 1)+ '.';
                     }
 
                     document.getElementById("path").value = data_from_server.path;
