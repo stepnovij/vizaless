@@ -45,10 +45,10 @@ def _preprocess_data(data):
 
     data = re.sub(r'\s\w{1}/\w{1}\s', '\n', data, flags=re.DOTALL)
 
-    data = re.sub(r'\sF\s', '\s', data, flags=re.DOTALL)
-    data = re.sub(r'\sЖ\s', '\s', data, flags=re.DOTALL)
-    data = re.sub(r'\sМ\s', '\s', data, flags=re.DOTALL)
-    data = re.sub(r'\sM\s', '\s', data, flags=re.DOTALL)
+    data = re.sub(r'\sF\s', ' ', data, flags=re.DOTALL)
+    data = re.sub(r'\sЖ\s', ' ', data, flags=re.DOTALL)
+    data = re.sub(r'\sМ\s', ' ', data, flags=re.DOTALL)
+    data = re.sub(r'\sM\s', ' ', data, flags=re.DOTALL)
 
     data = data.replace('!', '')
     data = data.replace('?', '')
